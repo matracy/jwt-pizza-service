@@ -4,9 +4,7 @@ const {
 	randomName,
 	createAdminUser,
 	testUser,
-	makeTestFranchise,
 	createAuthedAdminToken,
-	createFranchise,
 } = require("./routerTestingHelpers.js");
 
 let testUserLoggedInToken;
@@ -14,7 +12,8 @@ let testUserLoggedInToken;
 beforeAll(async () => {
 	testUser.email = Math.random().toString(36).substring(2, 12) + "@test.com";
 	const registerRes = await request(app).post("/api/auth").send(testUser);
-	const testUserAuthToken = registerRes.body.token;
+	let testUserAuthToken = registerRes.body.token;
+	expect(testUserAuthToken).not.toBeNull();
 	//TODO make sure that the auth token is signed in, since those are apparently separate.
 	const loginResult = await request(app).put("/api/auth").send(testUser);
 	testUserLoggedInToken = loginResult.body.token;
