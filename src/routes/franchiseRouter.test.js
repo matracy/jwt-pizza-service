@@ -53,23 +53,19 @@ test("add delete franchise", async () => {
 		.put("/api/auth")
 		.send(adminUser);
 	const adminToken = loggedInAdminResult.body.token;
-	console.log(`Admin token: ${adminToken}`);
 	//add a franchise
 	const addResult = await request(app)
 		.post("/api/franchise")
 		.set("Authorization", `Bearer ${adminToken}`)
-		.send(makeTestFranchise(adminUser)); //FIXME need to add admin user as admin before submitting franchise
-	console.log(
-		`Attempt to add franchise gave ${addResult.status} with body `,
-		addResult.body,
-	);
+		.send(makeTestFranchise(adminUser));
 	expect(addResult.status).toBe(200);
 	expect(addResult.body).not.toBe({});
-	//remove the franchise now that we are done with it.
-	// const delResult = await request(app)
-	// 	.delete("/api/franchise")
-	// 	.set("Authorization", `Bearer ${adminToken}`)
-	// 	.send();
-	// expect(delResult.status).toBe(200);
-	// expect(delResult.body).toBe({ message: "franchise deleted" });
+	const franchiseID = addResult.body.id;
+	// remove the franchise now that we are done with it.
+	const delResult = await request(app)
+		.delete(`/api/franchise/${franchiseID}`)
+		.set("Authorization", `Bearer ${adminToken}`)
+		.send();
+	expect(delResult.status).toBe(200);
+	expect(delResult.body).toStrictEqual({ message: "franchise deleted" });
 });
