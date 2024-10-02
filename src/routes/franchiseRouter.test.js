@@ -87,3 +87,32 @@ test("Delete franchise with wrong user", async () => {
 		.send();
 	expect(delResult.status).toBe(403);
 });
+
+test("List franchise by user", async () => {
+	//get admin user
+	let adminUser = await createAdminUser();
+	const loggedInAdminResult = await request(app)
+		.put("/api/auth")
+		.send(adminUser);
+	const adminToken = loggedInAdminResult.body.token;
+	adminUser.id = loggedInAdminResult.body.user.id;
+	expect(adminUser.id).not.toBeUndefined();
+	//check for existing franchises
+	const preCheckResult = await request(app)
+		.get(`/api/franchise/${adminUser.id}`)
+		.set("Authorization", `Bearer ${adminToken}`);
+	expect(preCheckResult.status).toBe(200);
+	expect(preCheckResult.body).toStrictEqual([]);
+	//add a franchise
+	const addResult = await request(app)
+		.post("/api/franchise")
+		.set("Authorization", `Bearer ${adminToken}`)
+		.send(makeTestFranchise(adminUser));
+	expect(addResult.status).toBe(200);
+	expect(addResult.body).not.toBe({});
+	const postCheckResult = await request(app)
+		.get(`/api/franchise/${adminUser.id}`)
+		.set("Authorization", `Bearer ${adminToken}`);
+	expect(postCheckResult.status).toBe(200);
+	expect(postCheckResult.body.length).toBe(1);
+});
