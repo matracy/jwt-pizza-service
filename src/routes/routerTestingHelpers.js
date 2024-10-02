@@ -17,7 +17,7 @@ async function createAdminUser() {
 	return user;
 }
 
-const testUser = {
+let testUser = {
 	name: "Robert Tables",
 	email: "droptables@school.db",
 	password: "sqlInjection",
