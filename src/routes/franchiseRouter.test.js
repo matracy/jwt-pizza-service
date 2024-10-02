@@ -116,3 +116,12 @@ test("List franchise by user", async () => {
 	expect(postCheckResult.status).toBe(200);
 	expect(postCheckResult.body.length).toBe(1);
 });
+
+test("create delete store", async () => {
+	//create franchise with wrong user
+	const addResult = await request(app)
+		.post("/api/franchise")
+		.set("Authorization", `Bearer ${testUserLoggedInToken}`)
+		.send(makeTestFranchise(testUser));
+	expect(addResult.status).toBe(403);
+});
