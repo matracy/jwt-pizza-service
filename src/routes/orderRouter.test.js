@@ -1,11 +1,14 @@
 const request = require("supertest");
 const app = require("../service");
+const {
+	randomName,
+	createAdminUser,
+	testUser,
+	makeTestFranchise,
+	createAuthedAdminToken,
+	createFranchise,
+} = require("./routerTestingHelpers.js");
 
-const testUser = {
-	name: "Robert Tables",
-	email: "droptables@school.db",
-	password: "sqlInjection",
-};
 let testUserLoggedInToken;
 
 beforeAll(async () => {
@@ -50,4 +53,32 @@ test("Order without authentication", async () => {
 		.set("Authorization", "Bearer badTokenDoesNotExist")
 		.send(testOrder);
 	expect(orderResponse.status).toBe(401);
+});
+
+test("get menu", async () => {
+	const menuResponse = await request(app).get("/api/order/menu");
+	expect(menuResponse.status).toBe(200);
+});
+
+test("add menu item", async () => {
+	//get an admin authed token
+	const adminUser = await createAdminUser();
+	expect(adminUser).not.toBeUndefined();
+	const authedAdminToken = await createAuthedAdminToken(adminUser);
+	expect(authedAdminToken).not.toBeUndefined();
+	//add new menu item
+	const newItem = {
+		title: `The poison [${randomName()} edition]`,
+		description:
+			"Kuzco's poison.  The poison specially chosen to kill Kuzco.  That poison?",
+		image: "vial.png",
+		price: 0.0001,
+	};
+	const addResponse = await request(app)
+		.put("/api/order/menu")
+		.set("Authorization", `Bearer ${authedAdminToken}`)
+		.send(newItem);
+	expect(addResponse.status).toBe(200);
+	expect(addResponse.body).not.toStrictEqual([]);
+	//remove menu item
 });
