@@ -30,25 +30,25 @@ test("fetch orders", async () => {
 test("place empty order", async () => {
 	let testOrder = { items: [] };
 	const orderResponse = await request(app)
-		.get("/api/order")
+		.post("/api/order")
 		.set("Authorization", `Bearer ${testUserLoggedInToken}`)
 		.send(testOrder);
-	expect(orderResponse.status).toBe(200);
+	expect(orderResponse.status).toBe(500);
 });
 
 test("order from bad franchise", async () => {
 	let testOrder = { franchiseID: -1, items: [] };
 	const orderResponse = await request(app)
-		.get("/api/order")
+		.post("/api/order")
 		.set("Authorization", `Bearer ${testUserLoggedInToken}`)
 		.send(testOrder);
-	expect(orderResponse.status).toBe(200);
+	expect(orderResponse.status).toBe(500);
 });
 
 test("Order without authentication", async () => {
 	let testOrder = { items: [] };
 	const orderResponse = await request(app)
-		.get("/api/order")
+		.post("/api/order")
 		.set("Authorization", "Bearer badTokenDoesNotExist")
 		.send(testOrder);
 	expect(orderResponse.status).toBe(401);
