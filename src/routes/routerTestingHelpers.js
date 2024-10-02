@@ -34,6 +34,14 @@ async function createAuthedAdminToken(adminUser) {
 	const loggedInAdminResult = await request(app)
 		.put("/api/auth")
 		.send(adminUser);
+	if (loggedInAdminResult.body.token == undefined) {
+		console.log(
+			"Admin user ",
+			adminUser,
+			` Could not be authed.  got ${loggedInAdminResult.status}: `,
+			loggedInAdminResult.body,
+		);
+	}
 	return loggedInAdminResult.body.token;
 }
 
