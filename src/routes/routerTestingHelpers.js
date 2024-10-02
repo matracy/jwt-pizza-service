@@ -42,6 +42,7 @@ async function createAuthedAdminToken(adminUser) {
 			loggedInAdminResult.body,
 		);
 	}
+	adminUser.id = loggedInAdminResult.body.user.id;
 	return loggedInAdminResult.body.token;
 }
 
