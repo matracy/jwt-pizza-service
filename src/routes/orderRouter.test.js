@@ -49,9 +49,5 @@ test("Order without authentication", async () => {
 		.get("/api/order")
 		.set("Authorization", "Bearer badTokenDoesNotExist")
 		.send(testOrder);
-	console.log(
-		`Order response gave ${orderResponse.status} with body`,
-		orderResponse.body,
-	);
 	expect(orderResponse.status).toBe(401);
 });

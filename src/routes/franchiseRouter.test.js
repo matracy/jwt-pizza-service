@@ -37,7 +37,6 @@ test("add delete franchise", async () => {
 		.post("/api/franchise")
 		.set("Authorization", `Bearer ${adminToken}`)
 		.send(makeTestFranchise(adminUser));
-	console.log(`recieved result ${addResult.status} with body `, addResult.body);
 	expect(addResult.status).toBe(200);
 	expect(addResult.body).not.toBe({});
 	const franchiseID = addResult.body.id;
@@ -71,4 +70,19 @@ test("create delete store", async () => {
 		.set("Authorization", `Bearer ${adminToken}`);
 	expect(removeResult.status).toBe(200);
 	expect(removeResult.body).toStrictEqual({ message: "store deleted" });
+});
+
+test("Delete franchise with wrong user", async () => {
+	//get an admin and authenticate them
+	const admin = await createAdminUser();
+	const adminToken = await createAuthedAdminToken(admin);
+	//get a franchise
+	const franchise = await createFranchise(admin, adminToken);
+	expect(franchise).not.toBe(false); // Presumably, a non-existant franchise would be falsey
+	// remove the franchise with the wrong user
+	const delResult = await request(app)
+		.delete(`/api/franchise/${franchise.id}`)
+		.set("Authorization", `Bearer ${testUserLoggedInToken}`)
+		.send();
+	expect(delResult.status).toBe(403);
 });
