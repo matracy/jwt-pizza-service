@@ -3,5 +3,3 @@
 config.js
 coverage
 dist
-coverageBadge.svg
-version.json
