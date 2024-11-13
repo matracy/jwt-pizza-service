@@ -71,6 +71,7 @@ class Metrics {
 	noteAuth(passed) {
 		if (passed) {
 			this.statistics.auth.passed += 1;
+			this.statistics.users += 1;
 		} else {
 			this.statistics.auth.failed += 1;
 		}
@@ -193,15 +194,32 @@ class Metrics {
 
 	trackRequest(req, res, next) {
 		this.noteHTTP(req.method);
-		console.log(req.url);
-		//TODO
-		//figure out which note__() function to call based on request destination
+		req._metricsStartTime = Date.now();
 		next();
 	}
 }
 
 const metrics = new Metrics();
+
 const requestTracker = (req, res, next) => {
 	metrics.trackRequest(req, res, next);
 };
-module.exports = requestTracker;
+
+const measureAuth = (isLogout, passed) => {
+	if (isLogout) {
+		metrics.removeUser();
+	} else {
+		metrics.noteAuth(passed);
+	}
+};
+
+const measureOrder = (success, order, startTime, HQStartTime, now) => {
+	var value = 0;
+	order.items.forEach((item) => {
+		value += item.price;
+	});
+	var numPizzas = order.items.length;
+	this.noteSale(numPizzas, success, value, now - HQStartTime, now - startTime);
+};
+
+module.exports = { requestTracker, measureAuth, measureOrder };
