@@ -96,43 +96,43 @@ class Metrics {
 			this.statistics.http.POST;
 
 		this.sendMetricToGrafana(
-			`request,source=${config.source},method=all total=${totalRequests}`,
+			`request,source=${config.metrics.source},method=all total=${totalRequests}`,
 		);
 		this.sendMetricToGrafana(
-			`request,source=${config.source},method=GET total=${this.statistics.http.GET}`,
+			`request,source=${config.metrics.source},method=GET total=${this.statistics.http.GET}`,
 		);
 		this.sendMetricToGrafana(
-			`request,source=${config.source},method=DELETE total=${this.statistics.http.DELETE}`,
+			`request,source=${config.metrics.source},method=DELETE total=${this.statistics.http.DELETE}`,
 		);
 		this.sendMetricToGrafana(
-			`request,source=${config.source},method=PUT total=${this.statistics.http.PUT}`,
+			`request,source=${config.metrics.source},method=PUT total=${this.statistics.http.PUT}`,
 		);
 		this.sendMetricToGrafana(
-			`request,source=${config.source},method=POST total=${this.statistics.http.POST}`,
+			`request,source=${config.metrics.source},method=POST total=${this.statistics.http.POST}`,
 		);
 	}
 
 	sendSystemMetrics() {
 		this.sendMetricToGrafana(
-			`system,source=${config.source}, CPU=${getCpuUsagePercentage()}`,
+			`system,source=${config.metrics.source} CPU=${getCpuUsagePercentage()}`,
 		);
 		this.sendMetricToGrafana(
-			`system,source=${config.source}, MEM=${getMemoryUsagePercentage()}`,
+			`system,source=${config.metrics.source} MEM=${getMemoryUsagePercentage()}`,
 		);
 	}
 
 	sendUserMetrics() {
 		this.sendMetricToGrafana(
-			`activeUsers,source=${config.source}, numActiveUsers=${this.statistics.users}`,
+			`activeUsers,source=${config.metrics.source} numActiveUsers=${this.statistics.users}`,
 		);
 	}
 
 	sendPurchaseMetrics() {
-		var numSold;
-		var totalRevenue;
-		var numFailures;
-		var totalHQTime;
-		var totalElapsedTime;
+		var numSold = 0;
+		var totalRevenue = 0;
+		var numFailures = 0;
+		var totalHQTime = 0;
+		var totalElapsedTime = 0;
 		this.statistics.purchase.forEach((trans) => {
 			numSold += trans.numItems;
 			if (!trans.success) {
@@ -149,40 +149,44 @@ class Metrics {
 		});
 
 		this.sendMetricToGrafana(
-			`sales,source=${config.source}, unitsSold=${numSold}`,
+			`sales,source=${config.metrics.source} unitsSold=${numSold}`,
 		);
 		this.sendMetricToGrafana(
-			`sales,source=${config.source}, totalRevenue=${totalRevenue}`,
+			`sales,source=${config.metrics.source} totalRevenue=${totalRevenue}`,
 		);
 		this.sendMetricToGrafana(
-			`sales,source=${config.source}, creationErrors=${numFailures}`,
+			`sales,source=${config.metrics.source} creationErrors=${numFailures}`,
 		);
 		this.sendMetricToGrafana(
-			`latency,source=${config.source}, HQ-delay=${totalHQTime / this.reportingPeriod}`,
+			`latency,source=${config.metrics.source} HQ-delay=${totalHQTime / this.reportingPeriod}`,
 		);
 		this.sendMetricToGrafana(
-			`latency,source=${config.source}, elapsedTime=${totalElapsedTime / this.reportingPeriod}`,
+			`latency,source=${config.metrics.source} elapsedTime=${totalElapsedTime / this.reportingPeriod}`,
 		);
 	}
 
 	sendAuthMetrics() {
 		this.sendMetricToGrafana(
-			`auth,source=${config.source}, Pass=${this.statistics.auth.passed}`,
+			`auth,source=${config.metrics.source} Pass=${this.statistics.auth.passed}`,
 		);
 		this.sendMetricToGrafana(
-			`auth,source=${config.source}, Fail=${this.statistics.auth.failed}`,
+			`auth,source=${config.metrics.source} Fail=${this.statistics.auth.failed}`,
 		);
 	}
 
 	sendMetricToGrafana(metric) {
-		fetch(`${config.url}`, {
+		fetch(`${config.metrics.url}`, {
 			method: "post",
 			body: metric,
-			headers: { Authorization: `Bearer ${config.userId}:${config.apiKey}` },
+			headers: {
+				Authorization: `Bearer ${config.metrics.userId}:${config.metrics.apiKey}`,
+			},
 		})
 			.then((response) => {
 				if (!response.ok) {
-					console.error("Failed to push metrics data to Grafana");
+					console.error(
+						`Failed to push metrics data to Grafana.  Got response ${response.status} for metric ${metric}`,
+					);
 				} else {
 					console.log(`Pushed ${metric}`);
 				}
