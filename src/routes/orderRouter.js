@@ -5,6 +5,7 @@ const { authRouter } = require("./authRouter.js");
 const { asyncHandler, StatusCodeError } = require("../endpointHelper.js");
 
 const { measureOrder } = require("../metrics.js");
+const { logFactoryServiceRequest } = require("../logging.js");
 
 const orderRouter = express.Router();
 
@@ -128,6 +129,10 @@ orderRouter.post(
 				diner: { id: req.user.id, name: req.user.name, email: req.user.email },
 				order,
 			}),
+		});
+		logFactoryServiceRequest({
+			diner: { id: req.user.id, name: req.user.name, email: req.user.email },
+			order,
 		});
 		const j = await r.json();
 		if (r.ok) {

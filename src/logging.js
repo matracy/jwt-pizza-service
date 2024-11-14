@@ -4,7 +4,8 @@ function sendLogToGrafana(msg) {
 	console.log(msg); //FIXME make this actually point to grafana
 }
 
-function logSQLQuery(query) {
+function logSQLQuery(query, params) {
+	//TODO work in parameters
 	const logMessage = {
 		streams: [
 			{
