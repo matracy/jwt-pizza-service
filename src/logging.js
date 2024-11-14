@@ -1,7 +1,17 @@
 const config = require("./config.js");
 
 function sendLogToGrafana(msg) {
-	console.log(msg); //FIXME make this actually point to grafana
+	const body = JSON.stringify(msg);
+	fetch(`${config.logging.url}`, {
+		method: "post",
+		body: body,
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${config.logging.userId}:${config.logging.apiKey}`,
+		},
+	}).then((res) => {
+		if (!res.ok) console.log("Failed to send log to Grafana");
+	});
 }
 
 function logSQLQuery(query, params) {
@@ -113,6 +123,7 @@ function logHTTPRequestResponse(req, res, next) {
 								Method: method,
 								Endpoint: endpoint,
 								ip: ip,
+								hasAuthHeader: hasAuthHeader,
 							},
 						],
 					],
