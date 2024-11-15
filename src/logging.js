@@ -9,9 +9,19 @@ function sendLogToGrafana(msg) {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${config.logging.userId}:${config.logging.apiKey}`,
 		},
-	}).then((res) => {
-		if (!res.ok) console.log("Failed to send log to Grafana");
-	});
+	})
+		.then((response) => {
+			if (!response.ok) {
+				console.error(
+					`Failed to push log entry to Grafana.  Got response ${response.status}: ${JSON.stringify(response.body)} for metric ${body}`,
+				);
+			} else {
+				console.log(`Loged ${body}`);
+			}
+		})
+		.catch((error) => {
+			console.error("Error pushing metrics:", error);
+		});
 }
 
 function logSQLQuery(query, params) {
@@ -24,7 +34,7 @@ function logSQLQuery(query, params) {
 					label: "Database",
 					Level: "info",
 				},
-				values: [[Date.now(), query]],
+				values: [[`${Math.floor(Date.now()) * 1000000}`, query]],
 			},
 		],
 	};
@@ -40,7 +50,7 @@ function logFactoryServiceRequest(orderInfo) {
 					label: "Factory",
 					Level: "info",
 				},
-				values: [[Date.now(), orderInfo]],
+				values: [[`${Math.floor(Date.now()) * 1000000}`, orderInfo]],
 			},
 		],
 	};
@@ -58,7 +68,7 @@ function logException(err, req, res, next) {
 				},
 				values: [
 					[
-						Date.now(),
+						`${Math.floor(Date.now()) * 1000000}`,
 						{ message: err.message, status: err.statusCode },
 						{
 							Method: req.method,
@@ -117,7 +127,7 @@ function logHTTPRequestResponse(req, res, next) {
 					},
 					values: [
 						[
-							Date.now(),
+							`${Math.floor(Date.now()) * 1000000}`,
 							logEntry,
 							{
 								Method: method,
