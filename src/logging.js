@@ -50,7 +50,12 @@ function logFactoryServiceRequest(orderInfo) {
 					label: "Factory",
 					Level: "info",
 				},
-				values: [[`${Math.floor(Date.now()) * 1000000}`, orderInfo]],
+				values: [
+					[
+						`${Math.floor(Date.now()) * 1000000}`,
+						`${JSON.stringify(orderInfo)}`,
+					],
+				],
 			},
 		],
 	};
@@ -69,7 +74,7 @@ function logException(err, req, res, next) {
 				values: [
 					[
 						`${Math.floor(Date.now()) * 1000000}`,
-						{ message: err.message, status: err.statusCode },
+						`${JSON.stringify({ message: err.message, status: err.statusCode })}`,
 						{
 							Method: req.method,
 							Endpoint: req.url,
@@ -128,7 +133,7 @@ function logHTTPRequestResponse(req, res, next) {
 					values: [
 						[
 							`${Math.floor(Date.now()) * 1000000}`,
-							logEntry,
+							`${logEntry}`,
 							{
 								Method: method,
 								Endpoint: endpoint,
