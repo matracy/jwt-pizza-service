@@ -90,38 +90,50 @@ function logException(err, req, res, next) {
 }
 
 function sanatizeHTTPBody(body) {
+	let isString = (value) => typeof value === "string";
+	var replacementBody = "";
+	if (isString(body)) {
+		replacementBody = body;
+	} else {
+		replacementBody = JSON.stringify(body);
+	}
 	// Taken with minor modifications from https://www.npmjs.com/package/pizza-logger
-	var replacementBody = JSON.stringify(body);
+	console.log("Sanatizing body.");
 	replacementBody = replacementBody.replace(
 		/\\"password\\":\s*\\"[^"]*\\"/g,
 		'\\"password\\": \\"*****\\"',
 	);
+	console.log("First pass sanitization done.");
 	replacementBody = replacementBody.replace(
 		/\\password\\=\s*\\"[^"]*\\"/g,
 		'\\"password\\": \\"*****\\"',
 	);
-	return JSON.parse(replacementBody);
+	console.log("Second pass sanitization done.");
+	return replacementBody;
 }
 
 function logHTTPRequestResponse(req, res, next) {
 	//simple bookkeeping
 	const endpoint = req.url;
 	const method = req.method;
-	const cleanRequestBody = sanatizeHTTPBody(req.body);
+	const cleanRequestBody = sanatizeHTTPBody(
+		req.body === null || req.body === undefined ? {} : req.body,
+	);
 	const hasAuthHeader = "Authorization" in req.headers;
 	const ip = req.ip;
+
 	//Prepare for some arcane espionage as guided by https://stackoverflow.com/questions/57551635/how-to-get-response-body-in-middleware
 	//The basic idea is that res.json() is part of the response chain, so if we overload it with our own lambda, we can run after the
 	//response has been decided, thus allowing us to capture it for logging despire the middleware having already finished execution.
-	const oldJSON = res.json;
-	res.json = async (value) => {
-		const rawResponseBody = await Promise.resolve(value);
-		const cleanResponseBody = sanatizeHTTPBody(rawResponseBody);
+
+	function injectableLogger(bodyToSend) {
+		const cleanResponseBody = sanatizeHTTPBody(bodyToSend);
 		const status = res.status;
-		const logEntry = JSON.stringify({
-			request: cleanRequestBody,
-			response: cleanResponseBody,
-		});
+		const logEntry = `{
+			"request": ${cleanRequestBody},
+			"response": ${cleanResponseBody},
+		}`;
+
 		const logMessage = {
 			streams: [
 				{
@@ -138,7 +150,7 @@ function logHTTPRequestResponse(req, res, next) {
 								Method: method,
 								Endpoint: endpoint,
 								ip: ip,
-								hasAuthHeader: hasAuthHeader,
+								hasAuthHeader: `${hasAuthHeader}`,
 							},
 						],
 					],
@@ -146,8 +158,15 @@ function logHTTPRequestResponse(req, res, next) {
 			],
 		};
 		sendLogToGrafana(logMessage);
-		return oldJSON.call(res, rawResponseBody);
+	}
+
+	// const oldSend = res.send;
+	const oldSend = res.send.bind(res);
+	res.send = (bodyToSend) => {
+		injectableLogger(bodyToSend);
+		return oldSend.call(res, bodyToSend);
 	};
+
 	//Now that we have injected logging to the request, let everyone else have a turn with it.
 	next();
 }
