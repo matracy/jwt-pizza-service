@@ -24,7 +24,7 @@ function sendLogToGrafana(msg) {
 		});
 }
 
-function logSQLQuery(query, params) {
+function logSQLQuery(query) {
 	//TODO work in parameters
 	const logMessage = {
 		streams: [
