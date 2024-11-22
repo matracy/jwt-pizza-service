@@ -104,7 +104,7 @@ authRouter.post(
 			roles: [{ role: Role.Diner }],
 		});
 		const auth = await setAuth(user);
-		measureAuth(false, req.user != null && req.user != undefined);
+		measureAuth(false, !(!auth || !user));
 		res.json({ user: user, token: auth });
 	}),
 );
@@ -114,10 +114,15 @@ authRouter.put(
 	"/",
 	asyncHandler(async (req, res) => {
 		const { email, password } = req.body;
-		const user = await DB.getUser(email, password);
-		const auth = await setAuth(user);
-		measureAuth(false, req.user != null && req.user != undefined);
-		res.json({ user: user, token: auth });
+		try {
+			const user = await DB.getUser(email, password);
+			const auth = await setAuth(user);
+			measureAuth(false, !(!auth || !user));
+			res.json({ user: user, token: auth });
+		} catch (err) {
+			measureAuth(false, false);
+			throw err;
+		}
 	}),
 );
 
@@ -127,7 +132,7 @@ authRouter.delete(
 	authRouter.authenticateToken,
 	asyncHandler(async (req, res) => {
 		clearAuth(req);
-		measureAuth(false, undefined);
+		measureAuth(true, undefined);
 		res.json({ message: "logout successful" });
 	}),
 );
