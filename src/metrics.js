@@ -223,7 +223,13 @@ const measureOrder = (success, order, startTime, HQStartTime, now) => {
 		value += item.price;
 	});
 	var numPizzas = order.items.length;
-	this.noteSale(numPizzas, success, value, now - HQStartTime, now - startTime);
+	metrics.noteSale(
+		numPizzas,
+		success,
+		value,
+		now - HQStartTime,
+		now - startTime,
+	);
 };
 
 module.exports = { requestTracker, measureAuth, measureOrder };
